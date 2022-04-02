@@ -8,8 +8,6 @@ import (
 	"sync"
 )
 
-var periodMap map[int][]ResultVM
-
 func initData() {
 	var teams []model.Team
 	var players []model.Player
@@ -45,11 +43,8 @@ func initData() {
 	}
 
 	periodMap = make(map[int][]ResultVM)
-	for i := 1; i <= 48; i++ {
-		vms := createResultForPeriod(i, teamsMap, playersMap, games, eventsMap)
-		sort.Slice(vms, func(i, j int) bool {
-			return vms[i].GameID < vms[j].GameID
-		})
+	for i := 0; i < 48; i++ {
+		vms := createResultForPeriod(i+1, teamsMap, playersMap, games, eventsMap)
 		periodMap[i] = vms
 	}
 }
@@ -57,13 +52,14 @@ func initData() {
 func createResultForPeriod(period int, teams map[int]model.Team, players map[int]model.Player, games []model.Game, events map[string][]model.Event) []ResultVM {
 	resultVM := make([]ResultVM, 0)
 	var wg sync.WaitGroup
+	var gameLock sync.Mutex
 	wg.Add(len(games))
 	for _, game := range games {
 		homeTeam := teams[game.HomeTeamID]
 		awayTeam := teams[game.AwayTeamID]
 		homeTeamEvents := events[fmt.Sprintf("%d-%d", game.ID, game.HomeTeamID)]
 		awayTeamEvents := events[fmt.Sprintf("%d-%d", game.ID, game.AwayTeamID)]
-		go createResultForGame(period, game.ID, homeTeam, awayTeam, homeTeamEvents, awayTeamEvents, players, &wg, &resultVM)
+		go createResultForGame(period, game.ID, homeTeam, awayTeam, homeTeamEvents, awayTeamEvents, players, &wg, &gameLock, &resultVM)
 	}
 	wg.Wait()
 	return resultVM
@@ -73,7 +69,7 @@ func createResultForGame(period, gameId int,
 	homeTeam model.Team, awayTeam model.Team,
 	homeTeamEvents []model.Event, awayTeamEvents []model.Event,
 	players map[int]model.Player,
-	s *sync.WaitGroup, vm *[]ResultVM) {
+	s *sync.WaitGroup, gameLock *sync.Mutex, vm *[]ResultVM) {
 	defer s.Done()
 	resultVM := ResultVM{
 		GameID:               gameId,
@@ -149,7 +145,7 @@ func createResultForGame(period, gameId int,
 				}
 			}
 		case model.EventTypeSuccessfulTwoPointShoot:
-			resultVM.HomeTeamScore += 2
+			resultVM.AwayTeamScore += 2
 			if val, ok := resultVM.AwayTeamPlayerEvents[event.PlayerID]; ok {
 				val.SuccessfulTwoPointShootCount++
 			} else {
@@ -171,5 +167,7 @@ func createResultForGame(period, gameId int,
 			}
 		}
 	}
+	gameLock.Lock()
 	*vm = append(*vm, resultVM)
+	gameLock.Unlock()
 }

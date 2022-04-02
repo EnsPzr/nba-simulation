@@ -9,6 +9,8 @@ func AutoMigrate() {
 	migrate(&model.Player{})
 	migrate(&model.Team{})
 	migrate(&model.Game{})
+	migrate(&model.GamePlayer{})
+	migrate(&model.Event{})
 }
 
 func migrate[T any](value T) {

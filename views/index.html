@@ -16,49 +16,46 @@
         </div>
         <div class="row">
             <div class="col-12 d-flex justify-content-center">
-                <button type="button" class="btn btn-success" @click="start">Start</button>
+                <button type="button" :disabled="disabledButton" v-if="model.ws_event === 0" class="btn btn-success"
+                        @click="sendMessage(0)">Start
+                </button>
             </div>
         </div>
-        <div class="row">
-            <div class="col-12 text-center justify-content-center">
-               <div>
-                   <div class="spinner-border" role="status">
-                       <span class="sr-only"></span>
-                   </div>
-                   <br>
-                   Preparing the simulation...
-               </div>
+        <div class="row" v-if="model.ws_event === 1">
+            <div class="col-12 text-center ">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only"></span>
+                </div>
                 <br>
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/D3HX8NnRFZs?start=7&autoplay=1"
-                        title="YouTube video player"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen></iframe>
+                Preparing the simulation...
             </div>
         </div>
-        <div class="row">
-            <div class="col-12 d-flex justify-content-center">
-                <button type="button" class="btn btn-success">Continue...</button>
-            </div>
-        </div>
-        <div class="row">
+        <div class="row" v-if="model.ws_event >= 3">
             <div class="col-12 text-center">
-                Step: {{step}}/48
+                <h3>Step: {{model.step}}/48</h3>
+                <h3>Real Time(Minute): {{model.real_time}}</h3>
+                <h3>Virtual Time(Second): {{model.virtual_time}}</h3>
             </div>
         </div>
-        <div class="row">
-            <div class="col-6">
+        <div class="row" v-if="model.ws_event >= 3">
+            <div class="col-6" v-for="(data,index) in model.result" :key="index">
                 <div class="card" style="width: 100%">
                     <div class="card-body">
-                        <h5 class="card-title text-center">A - B</h5>
+                        <h5 class="card-title text-center">{{data.home_team_name}} - {{data.away_team_name}}</h5>
                         <hr>
-                        <h6 class="card-subtitle mb-2 text-muted text-center">Score: 10 - 20</h6>
+                        <h6 class="card-subtitle mb-2 text-muted text-center">Score: {{data.home_team_score}} -
+                            {{data.away_team_score}}</h6>
                         <hr>
-                        <h6 class="card-subtitle mb-2 text-muted text-center">Atack Count: 10 - 20</h6>
+                        <h6 class="card-subtitle mb-2 text-muted text-center">Atack Count: {{data.home_team_attack_count}}
+                            - {{data.away_team_attack_count}}</h6>
                         <hr>
                         <div class="col-12 p-0 m-0">
                             <div class="w-50 d-inline-block">
                                 <div class="card">
                                     <div class="card-body">
+                                        <div class="card-title text-center">
+                                            {{data.home_team_name}}
+                                        </div>
                                         <table class="table table-striped table-bordered">
                                             <thead>
                                             <tr>
@@ -69,11 +66,12 @@
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            <tr>
-                                                <th scope="row">1</th>
-                                                <td>Mark</td>
-                                                <td>Otto</td>
-                                                <td>@mdo</td>
+                                            <tr v-for="(homePlayerEvent,eventIndex) in data.home_team_player_events"
+                                                :key="`${index}-${eventIndex}`">
+                                                <th>{{homePlayerEvent.player_name}}</th>
+                                                <td>{{homePlayerEvent.successful_three_point_shoot_count}}</td>
+                                                <td>{{homePlayerEvent.successful_two_point_shoot_count}}</td>
+                                                <td>{{homePlayerEvent.assist_count}}</td>
                                             </tr>
                                             </tbody>
                                         </table>
@@ -83,7 +81,28 @@
                             <div class="w-50 d-inline-block">
                                 <div class="card">
                                     <div class="card-body">
-
+                                        <div class="card-title text-center">
+                                            {{data.away_team_name}}
+                                        </div>
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">3</th>
+                                                <th scope="col">2</th>
+                                                <th scope="col">Asist</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <tr v-for="(awayPlayerEvent,eventIndex) in data.away_team_player_events"
+                                                :key="`${index}-${eventIndex}`">
+                                                <th>{{awayPlayerEvent.player_name}}</th>
+                                                <td>{{awayPlayerEvent.successful_three_point_shoot_count}}</td>
+                                                <td>{{awayPlayerEvent.successful_two_point_shoot_count}}</td>
+                                                <td>{{awayPlayerEvent.assist_count}}</td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -101,13 +120,50 @@
     Vue.createApp({
         data() {
             return {
-                step: 1,
+                ws: null,
+                model: {
+                    ws_event: 0,
+                    step: 1,
+                    result: [],
+                    real_time: 0,
+                    virtual_time: 0,
+                },
+                disabledButton: true,
             }
         },
         methods: {
-            start() {
-                console.log("started")
+            sendMessage(message) {
+                try {
+                    this.ws.send(JSON.stringify(message));
+                } catch (e) {
+                    alert(e);
+                }
+            },
+            connectWs() {
+                try {
+                    this.ws = new WebSocket("ws://localhost:8080/ws");
+                    this.ws.onmessage = (event) => {
+                        let data = JSON.parse(event.data);
+                        this.model = {
+                            ...data
+                        }
+                        if (this.model.ws_event === 5) {
+                            this.ws.close();
+                            alert("Simulation completed");
+                        }
+                        if (this.model.ws_event === 2) {
+                            this.sendMessage(3);
+                        }
+                    };
+
+                    this.disabledButton = false;
+                } catch (e) {
+                    alert(e)
+                }
             }
+        },
+        mounted() {
+            this.connectWs();
         }
     }).mount('#app')
 </script>

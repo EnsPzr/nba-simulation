@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=nba-simulation
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=nba-simulation
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nba-simulation -d nba-simulation"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    networks:
+      - nba-simulation-network
+  web:
+    image: nba-simulation
+    container_name: nba-simulation
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3003:8080"
+    environment:
+      DB_HOST: "db"
+      DB_PORT: 5432
+      DB_USER: nba-simulation
+      DB_PASSWORD: 123456
+      DB_NAME: nba-simulation
+    links:
+      - db
+    networks:
+      - nba-simulation-network
+
+
+networks:
+  nba-simulation-network:
+    name: nba-simulation-network

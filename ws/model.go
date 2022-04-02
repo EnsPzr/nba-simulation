@@ -4,15 +4,19 @@ type WsEvent int
 
 const (
 	WsEventStart WsEvent = iota
+	WsEventDataReading
 	WsEventDataReady
 	WsEventContinue
 	WsEventDataSent
+	WsEventEnd
 )
 
 type Message struct {
-	Event    WsEvent  `json:"event"`
-	Step     int      `json:"step"`
-	ResultVM ResultVM `json:"result"`
+	WsEvent     WsEvent    `json:"ws_event"`
+	Step        int        `json:"step"`
+	RealTime    int        `json:"real_time"`
+	VirtualTime int        `json:"virtual_time"`
+	ResultVM    []ResultVM `json:"result"`
 }
 
 type ResultVM struct {

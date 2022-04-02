@@ -9,6 +9,7 @@ const (
 	WsEventContinue
 	WsEventDataSent
 	WsEventEnd
+	WsEventRestart
 )
 
 type Message struct {

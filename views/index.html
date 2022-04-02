@@ -14,10 +14,17 @@
                 <h2>NBA Simulation</h2>
             </div>
         </div>
-        <div class="row">
+        <div class="row" v-if="model.ws_event === 0">
             <div class="col-12 d-flex justify-content-center">
-                <button type="button" :disabled="disabledButton" v-if="model.ws_event === 0" class="btn btn-success"
+                <button type="button" :disabled="disabledButton" class="btn btn-success"
                         @click="sendMessage(0)">Start
+                </button>
+            </div>
+        </div>
+        <div class="row" v-if="model.ws_event === 5">
+            <div class="col-12 d-flex justify-content-center">
+                <button type="button" :disabled="disabledButton" class="btn btn-success"
+                        @click="sendMessage(6)">Restart
                 </button>
             </div>
         </div>
@@ -35,6 +42,11 @@
                 <h3>Step: {{model.step}}/48</h3>
                 <h3>Real Time(Minute): {{model.real_time}}</h3>
                 <h3>Virtual Time(Second): {{model.virtual_time}}</h3>
+            </div>
+        </div>
+        <div class="row" v-if="model.ws_event >= 3 && (!model.result || model.result.length === 0)">
+            <div class="col-12 text-center">
+                <h3>Results are awaited</h3>
             </div>
         </div>
         <div class="row" v-if="model.ws_event >= 3">
@@ -141,14 +153,13 @@
             },
             connectWs() {
                 try {
-                    this.ws = new WebSocket("ws://localhost:8080/ws");
+                    this.ws = new WebSocket(`ws://${window.location.host}/ws`);
                     this.ws.onmessage = (event) => {
                         let data = JSON.parse(event.data);
                         this.model = {
                             ...data
                         }
                         if (this.model.ws_event === 5) {
-                            this.ws.close();
                             alert("Simulation completed");
                         }
                         if (this.model.ws_event === 2) {

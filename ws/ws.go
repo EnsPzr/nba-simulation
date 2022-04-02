@@ -60,6 +60,11 @@ func WsHandler(c *websocket.Conn) {
 				startCountingTime()
 				finalModel.WsEvent = WsEventEnd
 				broadcastChan <- finalModel
+			case WsEventRestart:
+				finalModel = Message{
+					WsEvent: WsEventDataReady,
+				}
+				broadcastChan <- finalModel
 			}
 		}
 

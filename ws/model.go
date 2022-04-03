@@ -2,6 +2,7 @@ package ws
 
 type WsEvent int
 
+// This events are used to client/server communication.
 const (
 	WsEventStart WsEvent = iota
 	WsEventDataReading
@@ -12,6 +13,7 @@ const (
 	WsEventRestart
 )
 
+// Message This structure is used to pass data between client and server.
 type Message struct {
 	WsEvent     WsEvent    `json:"ws_event"`
 	Step        int        `json:"step"`
@@ -20,6 +22,8 @@ type Message struct {
 	ResultVM    []ResultVM `json:"result"`
 }
 
+// ResultVM This structure is stored period data.
+// Every 5 seconds, data is updated.
 type ResultVM struct {
 	GameID               int                    `json:"game_id"`
 	HomeTeamName         string                 `json:"home_team_name"`
@@ -31,6 +35,8 @@ type ResultVM struct {
 	HomeTeamPlayerEvents map[int]*PlayerEventVM `json:"home_team_player_events"`
 	AwayTeamPlayerEvents map[int]*PlayerEventVM `json:"away_team_player_events"`
 }
+
+// PlayerEventVM This structure is store player events.
 type PlayerEventVM struct {
 	PlayerName                     string `json:"player_name"`
 	AssistCount                    int    `json:"assist_count"`

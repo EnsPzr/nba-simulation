@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/websocket/v2"
 )
 
+// Setup This function register to router all routes.
 func Setup(app fiber.Router) {
 	app.Use("/ws", func(c *fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
@@ -16,6 +17,8 @@ func Setup(app fiber.Router) {
 		}
 		return fiber.ErrUpgradeRequired
 	})
+	// This endpoint is web socket endpoint.
 	app.Get("/ws", websocket.New(ws.WsHandler))
+	// This endpoint is a static file endpoint. Only return index.html.
 	app.Static("/", "./views/index.html")
 }

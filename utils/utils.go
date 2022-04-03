@@ -6,6 +6,7 @@ type number interface {
 		int | uint | float32 | float64
 }
 
+// Remove This function is used to remove an item in a slice.
 func Remove[X number | bool | string](arr []X, deleted X) []X {
 	index := FindIndex(arr, deleted)
 	if index == -1 {
@@ -14,6 +15,7 @@ func Remove[X number | bool | string](arr []X, deleted X) []X {
 	return append(arr[:index], arr[index+1:]...)
 }
 
+// FindIndex This function is used to find the index of an item in a slice.
 func FindIndex[X number | bool | string](arr []X, search X) int {
 	for index, val := range arr {
 		if val == search {

@@ -13,6 +13,8 @@ func DB() *gorm.DB {
 	return db
 }
 
+// Connect This function opens a connection to the database.
+// If any error occurs, it will be returned.
 func Connect() error {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"),

@@ -4,6 +4,7 @@ import (
 	"github.com/enspzr/nba-simulation/model"
 )
 
+// AutoMigrate This function use to migrate database.
 func AutoMigrate() {
 	migrate(&model.Group{})
 	migrate(&model.Player{})

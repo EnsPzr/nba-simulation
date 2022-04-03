@@ -1,5 +1,6 @@
 package model
 
+// Game This structure is store game data.
 type Game struct {
 	BaseModel
 	HomeTeamID  int  `json:"home_team_id"`

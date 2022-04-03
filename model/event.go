@@ -2,6 +2,8 @@ package model
 
 type EventType int
 
+// These events are randomly selected.
+// The simulation is shaped by randomly selected events.
 const (
 	EventTypeSuccessfulThreePointShoot EventType = iota
 	EventTypeFailedThreePointShoot
@@ -9,15 +11,13 @@ const (
 	EventTypeFailedTwoPointShoot
 	EventTypeSuccessfulOnePointShoot
 	EventTypeFailedOnePointShoot
-	// topu kaptır
 	EventTypeCatchTheBall
-	// pas ver
 	EventTypeToPass
-	// topu sürme
 	EventTypeDribblingTheBall
 )
 
-// top takım değiştirdi mi
+// DidTheBallChangeSides If the throw is successful or the other team player catches the ball, the ball
+// is in the other team. In this case this function return true.
 func (event EventType) DidTheBallChangeSides() bool {
 	return event == EventTypeSuccessfulThreePointShoot ||
 		event == EventTypeSuccessfulTwoPointShoot ||
@@ -25,18 +25,21 @@ func (event EventType) DidTheBallChangeSides() bool {
 		event == EventTypeCatchTheBall
 }
 
+// FailedShoot If shooting is failed, this function return true.
 func (event EventType) FailedShoot() bool {
 	return event == EventTypeFailedThreePointShoot ||
 		event == EventTypeFailedTwoPointShoot ||
 		event == EventTypeFailedOnePointShoot
 }
 
+// SuccessfulShoot If shooting is successful, this function return true.
 func (event EventType) SuccessfulShoot() bool {
 	return event == EventTypeSuccessfulThreePointShoot ||
 		event == EventTypeSuccessfulTwoPointShoot ||
 		event == EventTypeSuccessfulOnePointShoot
 }
 
+// Event This structure stores all movement by games.
 type Event struct {
 	BaseModel
 	GameID     int       `json:"game_id"`

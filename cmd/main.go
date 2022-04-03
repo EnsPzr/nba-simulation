@@ -14,17 +14,23 @@ import (
 	"time"
 )
 
+// This function is called when the program is started.
+// It initializes the database and starts the server.
 func main() {
 	fmt.Println("Backend Starting")
+	//Connect database.
 	err := postgre.Connect()
 	if err != nil {
 		panic("Database connection failed => " + err.Error())
 	}
+	//Migrate database.
 	postgre.AutoMigrate()
+	//Seeding database.
 	data.InitData()
 
 	engine := html.New("./views/", ".html")
 	engine.Reload(true)
+	// Create new Fiber web server instance.
 	app := fiber.New(fiber.Config{
 		ReadTimeout:    time.Duration(10) * time.Second,
 		WriteTimeout:   time.Duration(10) * time.Second,
@@ -33,15 +39,18 @@ func main() {
 		JSONEncoder:    json.Marshal,
 		Views:          engine,
 	})
+	// Register routes.
 	router.Setup(app)
 
+	// Start server.
 	go func() {
-		if errr := app.Listen(fmt.Sprintf(":%v", 8080)); errr != nil {
+		if err = app.Listen(fmt.Sprintf(":%v", 8080)); err != nil {
 			fmt.Println("Fiber listen error => ", err.Error())
 		}
 	}()
 	fmt.Println("Backend Started")
 
+	// Wait for interrupt signal to gracefully shutdown the server with
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 

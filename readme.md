@@ -9,10 +9,10 @@ site. In fact, all events were determined at the beginning of the project.
 
 <h2>For run:</h2>
 Start docker from local machine.
-````shell
+```shell
 chmod +x build.sh
 ./build.sh
-````
+```
 <h3>Then you visit <a href="http://localhost:3003">localhost:3003</a></h3>
 
 Folder Structure
